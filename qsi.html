@@ -21,7 +21,7 @@
       ></textarea>
       <div class="ml-4 flex flex-col">
         <button class="rounded bg-blue-400 text-white p-2 mb-2" @click="refresh">Parse</button>
-        <button class="rounded bg-blue-400 text-white p-2" @click="refresh">Copy</button>
+        <button class="rounded bg-blue-400 text-white p-2" @click="copy(original)">Copy</button>
       </div>
     </section>
 
@@ -45,9 +45,9 @@
             class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
             ref="modifiedQueryString"
             readonly
-          >{{ modifiedQueryString }}</textarea>
+          >{{ modified }}</textarea>
           <div class="ml-4">
-            <button class="rounded bg-blue-400 text-white p-2" @click="refresh">Copy</button>
+            <button class="rounded bg-blue-400 text-white p-2" @click="copy(modified)">Copy</button>
           </div>
         </div>
       </section>
@@ -72,7 +72,7 @@
       sortedKeys() {
         return Object.keys(this.payload).sort()
       },
-      modifiedQueryString() {
+      modified() {
         return '?' + this.checkedKeys.map(key => {
 
           if (Array.isArray(this.payload[key])) {
@@ -120,6 +120,11 @@
 
           this.checkedKeys.sort()
         });
+      },
+      async copy(s) {
+        // https://www.raymondcamden.com/2020/03/04/vue-quick-shot-copy-to-the-clipboard
+        await navigator.clipboard.writeText(s);
+        alert('Copied!');
       }
     },
     updated() {
