@@ -10,26 +10,46 @@
 </head>
 <body class="bg-blue-50 text-gray-700">
   <main id="app">
-    <h1 class="text-4xl my-12 mx-auto max-w-2xl">Query String Inspector</h1>
-    <section v-if="hasPayload" class="mx-auto max-w-2xl mb-4">
-      <table class="border-2 border-blue-300 w-full">
-        <tr v-for="key in sortedKeys" :key="k" class="border-2 border-blue-300">
-          <td class="p-2">{{ key }}</td>
-          <td class="p-2">{{ payload[key] || "-" }}</td>
-        </tr>
-      </table>
-    </section>
-    <hr class="mx-auto max-w-3xl my-4 border-blue-300" v-if="hasPayload" />
-    <section class="mx-auto max-w-2xl">
+    <h1 class="text-4xl m-4">Query String Inspector</h1>
+
+    <section class="m-4 flex">
       <textarea
         class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
         placeholder="Paste query string here"
         v-model="original"
       ></textarea>
-      <div class="flex justify-end">
-        <button class="my-2 rounded bg-blue-400 text-white p-2" @click="refresh">Parse</button>
+      <div class="ml-4 flex flex-col">
+        <button class="rounded bg-blue-400 text-white p-2 mb-2" @click="refresh">Parse</button>
+        <button class="rounded bg-blue-400 text-white p-2" @click="refresh">Copy</button>
       </div>
     </section>
+
+    <div class="grid grid-cols-2 gap-4">
+      <section v-if="hasPayload" class="p-4">
+        <h2 class="text-2xl mb-2">Payload</h2>
+        <table class="border-2 border-blue-300 w-full">
+          <tr v-for="key in sortedKeys" :key="key" class="border-2 border-blue-300">
+            <td class="p-2">
+              <input type="checkbox" :id="key" :value="key" v-model="checkedKeys" class="mr-2" />
+              <label :for="key">{{ key }}</label>
+            </td>
+            <td class="p-2">{{ payload[key] || "-" }}</td>
+          </tr>
+        </table>
+      </section>
+      <section v-if="hasPayload" class="p-4">
+        <h2 class="text-2xl mb-2">Modified</h2>
+        <div class="flex">
+          <textarea
+            class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
+            readonly
+          >{{ modifiedQueryString }}</textarea>
+          <div class="ml-4">
+            <button class="rounded bg-blue-400 text-white p-2" @click="refresh">Copy</button>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 </body>
 </html>
@@ -40,6 +60,7 @@
       return {
         original: '',
         payload: {},
+        checkedKeys: [],
       }
     },
     computed: {
@@ -48,14 +69,25 @@
       },
       sortedKeys() {
         return Object.keys(this.payload).sort()
+      },
+      modifiedQueryString() {
+        return '?' + this.checkedKeys.map(key => {
+
+          if (Array.isArray(this.payload[key])) {
+            return this.payload[key].map(value => {
+              return key + "=" + value;
+            });
+          }
+
+          return key + "=" + this.payload[key]
+        }).flat().join('&');
       }
     },
     methods: {
       refresh() {
-        if (this.original.startsWith('?')) {
-          window.location.assign(location.pathname + this.original);
-        }
-        window.location.assign(location.pathname + '?' + this.original);
+        return this.original.startsWith('?')
+          ? window.location.assign(location.pathname + this.original)
+          : window.location.assign(location.pathname + '?' + this.original);
       },
       parse(query) {
         this.payload = {}
@@ -71,6 +103,7 @@
           if (key.endsWith('[]')) {
             if (!this.payload[key]) {
               this.payload[key] = [];
+              this.checkedKeys.push(key)
             }
 
             if (value.length) {
@@ -80,7 +113,10 @@
           // Collect plain values
           else {
             this.payload[key] = value
+            this.checkedKeys.push(key)
           }
+
+          this.checkedKeys.sort()
         });
       }
     },
