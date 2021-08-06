@@ -16,6 +16,7 @@
       <textarea
         class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
         placeholder="Paste query string here"
+        ref="originalQueryString"
         v-model="original"
       ></textarea>
       <div class="ml-4 flex flex-col">
@@ -42,6 +43,7 @@
         <div class="flex">
           <textarea
             class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
+            ref="modifiedQueryString"
             readonly
           >{{ modifiedQueryString }}</textarea>
           <div class="ml-4">
@@ -120,11 +122,15 @@
         });
       }
     },
+    updated() {
+      this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight)+"px";
+      this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight)+"px";
+    },
     mounted() {
       this.original = window.location.search;
       this.parse(this.original)
     },
   }
 
-  Vue.createApp(QSI).mount('#app')
+  Vue.createApp(QSI).mount('#app');
 </script>
