@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Query String Inspector</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3.1.5/dist/vue.global.js"></script>
+</head>
+<body class="bg-blue-50 text-gray-700">
+  <main id="app">
+    <h1 class="text-4xl my-12 mx-auto max-w-2xl">Query String Inspector</h1>
+    <section v-if="hasPayload" class="mx-auto max-w-2xl mb-4">
+      <table class="border-2 border-blue-300 w-full">
+        <tr v-for="key in sortedKeys" :key="k" class="border-2 border-blue-300">
+          <td class="p-2">{{ key }}</td>
+          <td class="p-2">{{ payload[key] || "-" }}</td>
+        </tr>
+      </table>
+    </section>
+    <hr class="mx-auto max-w-3xl my-4 border-blue-300" v-if="hasPayload" />
+    <section class="mx-auto max-w-2xl">
+      <textarea
+        class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
+        placeholder="Paste query string here"
+        v-model="original"
+      ></textarea>
+      <div class="flex justify-end">
+        <button class="my-2 rounded bg-blue-400 text-white p-2" @click="refresh">Parse</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+
+<script type="application/javascript">
+  const QSI = {
+    data() {
+      return {
+        original: '',
+        payload: {},
+      }
+    },
+    computed: {
+      hasPayload() {
+        return Object.keys(this.payload).length > 0;
+      },
+      sortedKeys() {
+        return Object.keys(this.payload).sort()
+      }
+    },
+    methods: {
+      refresh() {
+        if (this.original.startsWith('?')) {
+          window.location.assign(location.pathname + this.original);
+        }
+        window.location.assign(location.pathname + '?' + this.original);
+      },
+      parse(query) {
+        this.payload = {}
+        query.split('&').forEach(entry => {
+          [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=');
+
+          // An empty key indicates an empty query string
+          if (key.length == 0) {
+            return;
+          }
+
+          // Collect array values
+          if (key.endsWith('[]')) {
+            if (!this.payload[key]) {
+              this.payload[key] = [];
+            }
+
+            if (value.length) {
+              this.payload[key].push(value)
+            }
+          }
+          // Collect plain values
+          else {
+            this.payload[key] = value
+          }
+        });
+      }
+    },
+    mounted() {
+      this.original = window.location.search;
+      this.parse(this.original)
+    },
+  }
+
+  Vue.createApp(QSI).mount('#app')
+</script>
