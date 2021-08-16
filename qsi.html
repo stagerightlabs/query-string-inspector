@@ -87,12 +87,21 @@
     },
     methods: {
       refresh() {
+
+        if (this.original.includes('?')) {
+          const index = this.original.lastIndexOf('?')
+          this.original = this.original.slice(index);
+        }
+
         return this.original.startsWith('?')
           ? window.location.assign(location.pathname + this.original)
           : window.location.assign(location.pathname + '?' + this.original);
       },
       parse(query) {
         this.payload = {}
+
+
+
         query.split('&').forEach(entry => {
           [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=');
 
