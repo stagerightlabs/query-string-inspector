@@ -31,7 +31,7 @@
         <table class="border-2 border-blue-300 w-full">
           <tr v-for="key in sortedKeys" :key="key" class="border-2 border-blue-300">
             <td class="p-2">
-              <input type="checkbox" :id="key" :value="key" v-model="checkedKeys" class="mr-2" />
+              <input type="checkbox" :id="key" :value="key" class="mr-2" v-model="checkedKeys" @click="interceptCheckboxToggle" />
               <label :for="key">{{ key }}</label>
             </td>
             <td class="p-2">{{ payload[key] || "-" }}</td>
@@ -63,11 +63,12 @@
         original: '',
         payload: {},
         checkedKeys: [],
+        previousCheckboxSelection: null,
       }
     },
     computed: {
       hasPayload() {
-        return Object.keys(this.payload).length > 0;
+        return Object.keys(this.payload).length > 0
       },
       sortedKeys() {
         return Object.keys(this.payload).sort()
@@ -77,12 +78,12 @@
 
           if (Array.isArray(this.payload[key])) {
             return this.payload[key].map(value => {
-              return key + "=" + value;
-            });
+              return key + "=" + value
+            })
           }
 
           return key + "=" + this.payload[key]
-        }).flat().join('&');
+        }).flat().join('&')
       }
     },
     methods: {
@@ -90,30 +91,28 @@
 
         if (this.original.includes('?')) {
           const index = this.original.lastIndexOf('?')
-          this.original = this.original.slice(index);
+          this.original = this.original.slice(index)
         }
 
         return this.original.startsWith('?')
           ? window.location.assign(location.pathname + this.original)
-          : window.location.assign(location.pathname + '?' + this.original);
+          : window.location.assign(location.pathname + '?' + this.original)
       },
       parse(query) {
         this.payload = {}
 
-
-
         query.split('&').forEach(entry => {
-          [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=');
+          [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=')
 
           // An empty key indicates an empty query string
           if (key.length == 0) {
-            return;
+            return
           }
 
           // Collect array values
           if (key.endsWith('[]')) {
             if (!this.payload[key]) {
-              this.payload[key] = [];
+              this.payload[key] = []
               this.checkedKeys.push(key)
             }
 
@@ -128,23 +127,52 @@
           }
 
           this.checkedKeys.sort()
-        });
+        })
       },
       async copy(s) {
         // https://www.raymondcamden.com/2020/03/04/vue-quick-shot-copy-to-the-clipboard
-        await navigator.clipboard.writeText(s);
-        alert('Copied!');
+        await navigator.clipboard.writeText(s)
+        alert('Copied!')
+      },
+      interceptCheckboxToggle(event) {
+        // Here we will intercept the checkbox click to see if a modifier key was used.
+
+        // Ctrl - modify all checkboxes
+        if (event.ctrlKey && !event.target.checked) {
+          this.checkedKeys = []
+          this.previousCheckboxSelection = null
+        } else if (event.ctrlKey && event.target.checked) {
+          this.checkedKeys = this.sortedKeys
+          this.previousCheckboxSelection = null
+        }
+
+        // Shift - range selection
+        if (event.shiftKey && this.previousCheckboxSelection) {
+          const firstIndex = this.sortedKeys.findIndex(el => el === this.previousCheckboxSelection)
+          const secondIndex = this.sortedKeys.findIndex(el => el === event.target.value)
+
+          for (let i = Math.min(firstIndex, secondIndex); i <= Math.max(firstIndex, secondIndex); i++) {
+            // Are we selecting or deselecting?
+            if (event.target.checked) {
+              this.checkedKeys.push(this.sortedKeys[i])
+            } else {
+              this.checkedKeys = this.checkedKeys.filter(el => el !== this.sortedKeys[i])
+            }
+          }
+        } else {
+          this.previousCheckboxSelection = event.target.value
+        }
       }
     },
     updated() {
-      this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight)+"px";
-      this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight)+"px";
+      this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight)+"px"
+      this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight)+"px"
     },
     mounted() {
-      this.original = window.location.search;
+      this.original = window.location.search
       this.parse(this.original)
     },
   }
 
-  Vue.createApp(QSI).mount('#app');
+  Vue.createApp(QSI).mount('#app')
 </script>
