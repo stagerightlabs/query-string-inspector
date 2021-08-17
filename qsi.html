@@ -159,9 +159,10 @@
               this.checkedKeys = this.checkedKeys.filter(el => el !== this.sortedKeys[i])
             }
           }
-        } else {
-          this.previousCheckboxSelection = event.target.value
         }
+
+        // keep a note of the most recently selected checkbox
+        this.previousCheckboxSelection = event.target.value
       }
     },
     updated() {
