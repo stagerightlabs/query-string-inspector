@@ -101,6 +101,7 @@
           : window.location.assign(location.pathname + '?' + this.original)
       },
       parse (query) {
+        query = this.decode(query)
         this.payload = {}
         query.split('&').forEach(entry => {
           [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=')
@@ -165,13 +166,17 @@
         // keep a note of the most recently selected checkbox
         this.previousCheckboxSelection = event.target.value
       },
+      // Decode URL parameters
+      decode (input) {
+        return decodeURIComponent(input)
+      }
     },
     updated () {
       this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight) + "px"
       this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight) + "px"
     },
     mounted () {
-      this.original = window.location.search
+      this.original = this.decode(window.location.search)
       this.parse(this.original)
     },
   }
