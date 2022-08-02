@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,17 +9,17 @@
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://unpkg.com/vue@3.1.5/dist/vue.global.js"></script>
 </head>
+
 <body class="bg-blue-50 text-gray-700">
   <main id="app">
     <h1 class="text-4xl m-4">Query String Inspector</h1>
 
     <section class="m-4 flex">
       <textarea
-        class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
-        placeholder="Paste query string here"
-        ref="originalQueryString"
-        v-model="original"
-      ></textarea>
+                class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
+                placeholder="Paste query string here"
+                ref="originalQueryString"
+                v-model="original"></textarea>
       <div class="ml-4 flex flex-col">
         <button class="rounded bg-blue-400 text-white p-2 mb-2" @click="refresh">Parse</button>
         <button class="rounded bg-blue-400 text-white p-2" @click="copy(original)">Copy</button>
@@ -31,7 +32,8 @@
         <table class="border-2 border-blue-300 w-full">
           <tr v-for="key in sortedKeys" :key="key" class="border-2 border-blue-300">
             <td class="p-2">
-              <input type="checkbox" :id="key" :value="key" class="mr-2" v-model="checkedKeys" @click="interceptCheckboxToggle" />
+              <input type="checkbox" :id="key" :value="key" class="mr-2" v-model="checkedKeys"
+                     @click="interceptCheckboxToggle" />
               <label :for="key">{{ key }}</label>
             </td>
             <td class="p-2">{{ payload[key] || "-" }}</td>
@@ -42,10 +44,9 @@
         <h2 class="text-2xl mb-2">Modified</h2>
         <div class="flex">
           <textarea
-            class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
-            ref="modifiedQueryString"
-            readonly
-          >{{ modified }}</textarea>
+                    class="p-2 font-mono w-full text-gray-500 border-blue-200 border-2 rounded bg-white"
+                    ref="modifiedQueryString"
+                    readonly>{{ modified }}</textarea>
           <div class="ml-4">
             <button class="rounded bg-blue-400 text-white p-2" @click="copy(modified)">Copy</button>
           </div>
@@ -54,11 +55,12 @@
     </div>
   </main>
 </body>
+
 </html>
 
 <script type="application/javascript">
   const QSI = {
-    data() {
+    data () {
       return {
         original: '',
         payload: {},
@@ -67,13 +69,13 @@
       }
     },
     computed: {
-      hasPayload() {
+      hasPayload () {
         return Object.keys(this.payload).length > 0
       },
-      sortedKeys() {
+      sortedKeys () {
         return Object.keys(this.payload).sort()
       },
-      modified() {
+      modified () {
         return '?' + this.checkedKeys.map(key => {
 
           if (Array.isArray(this.payload[key])) {
@@ -87,7 +89,7 @@
       }
     },
     methods: {
-      refresh() {
+      refresh () {
 
         if (this.original.includes('?')) {
           const index = this.original.lastIndexOf('?')
@@ -98,9 +100,8 @@
           ? window.location.assign(location.pathname + this.original)
           : window.location.assign(location.pathname + '?' + this.original)
       },
-      parse(query) {
+      parse (query) {
         this.payload = {}
-
         query.split('&').forEach(entry => {
           [key, value] = (entry.startsWith('?') ? entry.substring(1) : entry).split('=')
 
@@ -129,12 +130,12 @@
           this.checkedKeys.sort()
         })
       },
-      async copy(s) {
+      async copy (s) {
         // https://www.raymondcamden.com/2020/03/04/vue-quick-shot-copy-to-the-clipboard
         await navigator.clipboard.writeText(s)
         alert('Copied!')
       },
-      interceptCheckboxToggle(event) {
+      interceptCheckboxToggle (event) {
         // Here we will intercept the checkbox click to see if a modifier key was used.
 
         // Ctrl - modify all checkboxes
@@ -163,13 +164,13 @@
 
         // keep a note of the most recently selected checkbox
         this.previousCheckboxSelection = event.target.value
-      }
+      },
     },
-    updated() {
-      this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight)+"px"
-      this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight)+"px"
+    updated () {
+      this.$refs.modifiedQueryString.style.height = (this.$refs.modifiedQueryString.scrollHeight) + "px"
+      this.$refs.originalQueryString.style.height = (this.$refs.originalQueryString.scrollHeight) + "px"
     },
-    mounted() {
+    mounted () {
       this.original = window.location.search
       this.parse(this.original)
     },
